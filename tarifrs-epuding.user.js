@@ -4,6 +4,8 @@
 // @version      15.2
 // @description  Tarik Tarif RS dari Puding
 // @match        http://192.168.3.16/smartplus/erm_ranap*
+// @updateURL    https://raw.githubusercontent.com/almunawarfikri/smartplus-tools/main/tarifrs-epuding.user.js
+// @downloadURL  https://raw.githubusercontent.com/almunawarfikri/smartplus-tools/main/tarifrs-epuding.user.js
 // @grant        GM_xmlhttpRequest
 // @connect      192.168.3.15
 // ==/UserScript==
