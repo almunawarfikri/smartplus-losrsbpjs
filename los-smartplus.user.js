@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SmartPlus LOS RS & BPJS
 // @namespace    http://tampermonkey.net/
-// @version      15.2
+// @version      15.3
 // @description  LOS RS + LOS BPJS (tanpa Tarif RS) + cache + fast + sort
 // @match        http://192.168.3.16/smartplus/erm_ranap*
 // @updateURL    https://raw.githubusercontent.com/almunawarfikri/smartplus-losrsbpjs/main/los-smartplus.user.js
@@ -24,14 +24,40 @@ function saveCache(cache){
     localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
 }
 
+/* ================= PARSE TANGGAL INDONESIA ================= */
+
+function parseTanggal(tgl){
+
+    if(!tgl) return null;
+
+    let parts = tgl.trim().split(" ");
+
+    if(parts.length < 2) return null;
+
+    let date = parts[0].split(/[-\/]/);
+    let time = parts[1];
+
+    if(date.length !== 3) return null;
+
+    let formatted = `${date[2]}-${date[1]}-${date[0]}T${time}`;
+
+    let d = new Date(formatted);
+
+    if(isNaN(d)) return null;
+
+    return d;
+}
+
 /* ================= HITUNG LOS RS ================= */
 
 function hitungLOS(tgl){
 
-    if(!tgl) return {text:"-",hari:0};
+    let start = parseTanggal(tgl);
 
-    let start = new Date(tgl.replace(" ","T"));
+    if(!start) return {text:"-",hari:0};
+
     let now = new Date();
+
     let diff = now - start;
 
     let hari = Math.floor(diff/(1000*60*60*24));
@@ -44,9 +70,10 @@ function hitungLOS(tgl){
 
 function hitungLOSBPJS(tgl){
 
-    if(!tgl) return "-";
+    let s = parseTanggal(tgl);
 
-    let s = new Date(tgl.replace(" ","T"));
+    if(!s) return "-";
+
     let n = new Date();
 
     let sd = new Date(s.getFullYear(),s.getMonth(),s.getDate());
