@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Dashboard TKMKB
 // @namespace    http://tampermonkey.net/
-// @version      1.1
-// @description  Dashboard LOS RS, LOS BPJS dan Tarif RS
+// @version      1.3
+// @description  Dashboard LOS + Ruangan
 // @author       Fikri
 // @match        http://192.168.3.16/smartplus/erm_ranap*
 // @updateURL    https://raw.githubusercontent.com/almunawarfikri/smartplus-tools/main/dashboardlos.user.js
@@ -11,97 +11,192 @@
 // ==/UserScript==
 
 (function() {
-    'use strict';
+'use strict';
 
-    /* ================= DASHBOARD DATA & STYLE ================= */
-    const style = `
-        #dashboardPasien {
-            background: #ffffff;
-            border: 1px solid #ccc;
-            padding: 12px;
-            margin-bottom: 10px;
-            font-family: sans-serif;
-            font-size: 14px;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
+/* ================= STYLE ================= */
+
+const style = `
+#dashboardPasien{
+    background:#fff;
+    border:1px solid #ccc;
+    padding:12px;
+    margin-bottom:10px;
+    font-family:sans-serif;
+    font-size:14px;
+    border-radius:6px;
+}
+
+.dot{
+    height:12px;
+    width:12px;
+    border-radius:50%;
+    display:inline-block;
+    margin-right:5px;
+}
+
+.hijau{background:#4caf50;}
+.orange{background:#ff9800;}
+.merah{background:#d50000;}
+
+.ruang-detail{
+    background:#f5f5f5;
+    padding:3px 8px;
+    border-radius:4px;
+    margin-left:5px;
+}
+`;
+
+/* ================= MASUKKAN STYLE KE PAGE ================= */
+
+const styleSheet = document.createElement("style");
+styleSheet.innerText = style;
+document.head.appendChild(styleSheet);
+
+
+/* ================= HITUNG DATA ================= */
+
+function hitungStatistik(){
+
+    const rows=document.querySelectorAll("#myTable tbody tr");
+
+    let total=0;
+    let hijau=0;
+    let los4=0;
+    let los5=0;
+
+    let ruang4={};
+    let ruang5={};
+
+    rows.forEach(row=>{
+
+        const cells=[...row.cells];
+
+        const losCell=cells.find(c=>c.innerText.includes("Hari"));
+
+        if(!losCell) return;
+
+        const hari=parseInt(losCell.innerText.split(" ")[0]);
+
+        total++;
+
+        if(hari<=3) hijau++;
+
+        if(hari===4){
+
+            los4++;
+
+            const ruang=getRuangan(cells);
+
+            if(ruang){
+                ruang4[ruang]=(ruang4[ruang]||0)+1;
+            }
+
         }
-        .dash-item { display: flex; align-items: center; gap: 5px; }
-        .dot { height: 12px; width: 12px; border-radius: 50%; display: inline-block; }
-        .dot-hijau { background-color: #4caf50; }
-        .dot-orange { background-color: #ff9800; }
-        .dot-merah { background-color: #d50000; }
-        .dash-label { font-weight: bold; }
-        .dash-value { font-weight: bold; font-size: 15px; }
+
+        if(hari>=5){
+
+            los5++;
+
+            const ruang=getRuangan(cells);
+
+            if(ruang){
+                ruang5[ruang]=(ruang5[ruang]||0)+1;
+            }
+
+        }
+
+    });
+
+    return {total,hijau,los4,los5,ruang4,ruang5};
+
+}
+
+
+/* ================= AMBIL RUANGAN ================= */
+
+function getRuangan(cells){
+
+    const ruangCell=cells.find(c=>
+        c.innerText.includes("RPU") ||
+        c.innerText.includes("ICU") ||
+        c.innerText.includes("ISOLASI") ||
+        c.innerText.includes("HCU")
+    );
+
+    if(!ruangCell) return null;
+
+    const nama=ruangCell.innerText.toUpperCase();
+
+    if(nama.includes("RPU-A")) return "RPU-A";
+    if(nama.includes("RPU-B")) return "RPU-B";
+    if(nama.includes("RPU-C")) return "RPU-C";
+    if(nama.includes("ICU")) return "ICU";
+    if(nama.includes("ISOLASI")) return "ISOLASI";
+    if(nama.includes("HCU")) return "HCU";
+
+    return null;
+
+}
+
+
+/* ================= FORMAT RUANGAN ================= */
+
+function formatRuang(data){
+
+    let arr=[];
+
+    Object.keys(data).forEach(r=>{
+        arr.push(`${r} : ${data[r]}`);
+    });
+
+    return `<span class="ruang-detail">(${arr.join(", ")})</span>`;
+}
+
+/* ================= DASHBOARD ================= */
+
+function buatDashboard(){
+
+    if(document.getElementById("dashboardPasien")) return;
+
+    const styleSheet=document.createElement("style");
+    styleSheet.innerText=style;
+    document.head.appendChild(styleSheet);
+
+    const div=document.createElement("div");
+    div.id="dashboardPasien";
+
+    const d=hitungStatistik();
+
+    div.innerHTML=`
+
+    <b>Dashboard KMKB</b> |
+    Total Pasien: ${d.total}
+
+    &nbsp;&nbsp;
+    <span class="dot hijau"></span>
+    LOS ≤3: ${d.hijau}
+
+    &nbsp;&nbsp;
+    <span class="dot orange"></span>
+    LOS 4: ${d.los4} (${formatRuang(d.ruang4)})
+
+    &nbsp;&nbsp;
+    <span class="dot merah"></span>
+    LOS ≥5: ${d.los5} (${formatRuang(d.ruang5)})
+
     `;
 
-    /* ================= FUNGSI HITUNG STATISTIK ================= */
-    function hitungStatistik() {
-        const rows = document.querySelectorAll("#myTable tbody tr");
-        let stats = { total: 0, hijau: 0, orange: 0, merah: 0 };
+    const table=document.querySelector("#myTable");
 
-        rows.forEach(row => {
-            // Mencari cell yang berisi informasi hari dari script LOS
-            const cells = Array.from(row.cells);
-            const losCell = cells.find(c => c.innerText.includes("Hari"));
-            
-            if (losCell) {
-                stats.total++;
-                const hari = parseInt(losCell.innerText.split(" ")[0]);
-                
-                if (hari <= 3) stats.hijau++;
-                else if (hari === 4) stats.orange++;
-                else if (hari >= 5) stats.merah++;
-            }
-        });
-
-        return stats;
+    if(table){
+        table.parentElement.insertBefore(div,table);
     }
 
-    /* ================= TAMPILKAN DASHBOARD ================= */
-    function buatDashboard() {
-        if (document.getElementById("dashboardPasien")) return;
+}
 
-        // Tambah Style ke Head
-        const styleSheet = document.createElement("style");
-        styleSheet.innerText = style;
-        document.head.appendChild(styleSheet);
 
-        const div = document.createElement("div");
-        div.id = "dashboardPasien";
-        
-        const stats = hitungStatistik();
+/* ================= RUN ================= */
 
-        div.innerHTML = `
-            <div class="dash-item">
-                <span class="dash-label">Dashboard KMKB | Total Pasien:</span>
-                <span class="dash-value" id="v_total">${stats.total}</span>
-            </div>
-            <div class="dash-item">
-                <span class="dot dot-hijau"></span>
-                <span class="dash-label">LOS ≤3:</span>
-                <span class="dash-value" id="v_hijau">${stats.hijau}</span>
-            </div>
-            <div class="dash-item">
-                <span class="dot dot-orange"></span>
-                <span class="dash-label">LOS 4:</span>
-                <span class="dash-value" id="v_orange">${stats.orange}</span>
-            </div>
-            <div class="dash-item">
-                <span class="dot dot-merah"></span>
-                <span class="dash-label">LOS ≥5:</span>
-                <span class="dash-value" id="v_merah">${stats.merah}</span>
-            </div>
-        `;
-
-        const table = document.querySelector("#myTable");
-        if (table) {
-            table.parentElement.insertBefore(div, table);
-        }
-    }
-
-    // Eksekusi setelah tabel selesai dimuat oleh script utama
-    setTimeout(buatDashboard, 3000);
+setTimeout(buatDashboard,3000);
 
 })();
