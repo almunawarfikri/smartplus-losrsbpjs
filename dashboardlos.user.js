@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Dashboard Pasien Ranap
 // @namespace    http://tampermonkey.net/
-// @version      18.1
+// @version      18.2
 // @description  Dashboard statistik pasien Ranap berdasarkan LOS (Auto-update dari GitHub)
 // @author       Gemini
 // @match        http://192.168.3.16/smartplus/erm_ranap*
@@ -75,7 +75,7 @@
 
         div.innerHTML = `
             <div class="dash-item">
-                <span class="dash-label">Dashboard Casemix | Total Pasien:</span>
+                <span class="dash-label">Dashboard KMKB | Total Pasien:</span>
                 <span class="dash-value" id="v_total">${stats.total}</span>
             </div>
             <div class="dash-item">
