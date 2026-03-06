@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SmartPlus LOS RS & BPJS
 // @namespace    http://tampermonkey.net/
-// @version      15.1
+// @version      15.2
 // @description  LOS RS + LOS BPJS (tanpa Tarif RS) + cache + fast + sort
 // @match        http://192.168.3.16/smartplus/erm_ranap*
 // @updateURL    https://raw.githubusercontent.com/almunawarfikri/smartplus-losrsbpjs/main/los-smartplus.user.js
@@ -17,22 +17,25 @@ const CACHE_KEY = "smartplus_cache_los";
 /* ================= CACHE ================= */
 
 function getCache(){
-    return JSON.parse(localStorage.getItem(CACHE_KEY)||"{}");
+    return JSON.parse(localStorage.getItem(CACHE_KEY) || "{}");
 }
 
 function saveCache(cache){
-    localStorage.setItem(CACHE_KEY,JSON.stringify(cache));
+    localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
 }
 
 /* ================= HITUNG LOS RS ================= */
 
 function hitungLOS(tgl){
-    let start=new Date(tgl.replace(" ","T"));
-    let now=new Date();
-    let diff=now-start;
 
-    let hari=Math.floor(diff/(1000*60*60*24));
-    let jam=Math.floor((diff%(1000*60*60*24))/(1000*60*60));
+    if(!tgl) return {text:"-",hari:0};
+
+    let start = new Date(tgl.replace(" ","T"));
+    let now = new Date();
+    let diff = now - start;
+
+    let hari = Math.floor(diff/(1000*60*60*24));
+    let jam = Math.floor((diff%(1000*60*60*24))/(1000*60*60));
 
     return {text:`${hari} Hari ${jam} Jam`,hari};
 }
@@ -40,11 +43,14 @@ function hitungLOS(tgl){
 /* ================= HITUNG LOS BPJS ================= */
 
 function hitungLOSBPJS(tgl){
-    let s=new Date(tgl.replace(" ","T"));
-    let n=new Date();
 
-    let sd=new Date(s.getFullYear(),s.getMonth(),s.getDate());
-    let nd=new Date(n.getFullYear(),n.getMonth(),n.getDate());
+    if(!tgl) return "-";
+
+    let s = new Date(tgl.replace(" ","T"));
+    let n = new Date();
+
+    let sd = new Date(s.getFullYear(),s.getMonth(),s.getDate());
+    let nd = new Date(n.getFullYear(),n.getMonth(),n.getDate());
 
     return Math.floor((nd-sd)/(1000*60*60*24))+1;
 }
@@ -52,16 +58,27 @@ function hitungLOSBPJS(tgl){
 /* ================= AMBIL WAKTU REGISTRASI ================= */
 
 function ambilWaktuRegistrasi(html){
-    let doc=new DOMParser().parseFromString(html,"text/html");
 
-    let labels=doc.querySelectorAll("label");
+    let doc = new DOMParser().parseFromString(html,"text/html");
+
+    let labels = doc.querySelectorAll("label");
 
     for(let l of labels){
-        if(l.innerText.includes("Waktu Registrasi")){
-            let v=l.parentElement.querySelector(".col-sm-9");
-            return v? v.innerText.replace(":","").trim() : null;
+
+        let text = l.innerText.toLowerCase();
+
+        if(text.includes("registrasi")){
+
+            let v = l.parentElement.querySelector(".col-sm-9");
+
+            if(v){
+                return v.innerText.replace(":","").trim();
+            }
+
         }
+
     }
+
     return null;
 }
 
@@ -119,14 +136,19 @@ function setupColumns(){
 
 function tampilkan(data,rsCell,bpjsCell){
 
-    let los=hitungLOS(data.tgl);
-    let losBPJS=hitungLOSBPJS(data.tgl);
+    let los = hitungLOS(data.tgl);
+    let losBPJS = hitungLOSBPJS(data.tgl);
 
-    rsCell.innerText=los.text;
+    rsCell.innerText = los.text;
     rsCell.setAttribute("data-order",los.hari);
 
-    bpjsCell.innerText=losBPJS+" Hari";
-    bpjsCell.setAttribute("data-order",losBPJS);
+    if(losBPJS==="-" ){
+        bpjsCell.innerText="-";
+        bpjsCell.setAttribute("data-order",0);
+    }else{
+        bpjsCell.innerText = losBPJS+" Hari";
+        bpjsCell.setAttribute("data-order",losBPJS);
+    }
 
     warnaCell(rsCell,los.hari);
 }
@@ -135,13 +157,13 @@ function tampilkan(data,rsCell,bpjsCell){
 
 async function proses(rsIndex){
 
-    let cache=getCache();
-    let rows=document.querySelectorAll("#myTable tbody tr");
-    let jobs=[];
+    let cache = getCache();
+    let rows = document.querySelectorAll("#myTable tbody tr");
+    let jobs = [];
 
     for(let row of rows){
 
-        let cells=row.querySelectorAll("td");
+        let cells = row.querySelectorAll("td");
         if(!cells[rsIndex]) continue;
 
         if(!row.querySelector(".losbpjs-cell")){
@@ -168,7 +190,9 @@ async function proses(rsIndex){
 
         jobs.push(
 
-            fetch(link.href)
+            fetch(link.href,{
+                credentials:"include"
+            })
             .then(r=>r.text())
             .then(html=>{
 
@@ -186,8 +210,10 @@ async function proses(rsIndex){
                 tampilkan(cache[key],rsCell,bpjsCell);
             })
             .catch(()=>{
+
                 rsCell.innerText="-";
                 bpjsCell.innerText="-";
+
             })
         );
     }
@@ -198,13 +224,15 @@ async function proses(rsIndex){
 /* ================= INIT ================= */
 
 function init(){
+
     let rsIndex=setupColumns();
+
     if(rsIndex===null) return;
+
     proses(rsIndex);
+
 }
 
 setTimeout(init,2000);
 
-
 })();
-
