@@ -4,8 +4,8 @@
 // @version      1.1
 // @description  Set show entries jadi 100 otomatis
 // @match        http://192.168.3.16/smartplus/erm_ranap*
-// @updateURL    https://raw.githubusercontent.com/almunawarfikri/smartplus-losrsbpjs/main/auto-display-100.user.js
-// @downloadURL  https://raw.githubusercontent.com/almunawarfikri/smartplus-losrsbpjs/main/auto-display-100.user.js
+// @updateURL    https://raw.githubusercontent.com/almunawarfikri/smartplus-tools/main/auto-display-100.user.js
+// @downloadURL  https://raw.githubusercontent.com/almunawarfikri/smartplus-tools/main/auto-display-100.user.js
 // @grant        none
 // ==/UserScript==
 
@@ -24,3 +24,4 @@
     }, 500);
 
 })();
+
