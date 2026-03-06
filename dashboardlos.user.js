@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         Disable Klik Kolom Casemix
+// @name         Dashboard TKMKB
 // @namespace    http://tampermonkey.net/
 // @version      1.1
-// @description  Mencegah klik membuka detail pasien pada kolom LOS RS, LOS BPJS dan Tarif RS
+// @description  Dashboard LOS RS, LOS BPJS dan Tarif RS
 // @author       Fikri
 // @match        http://192.168.3.16/smartplus/erm_ranap*
 // @updateURL    https://raw.githubusercontent.com/almunawarfikri/smartplus-tools/main/dashboardlos.user.js
