@@ -5,6 +5,8 @@
 // @description  Dashboard LOS + Ruangan + Dokter
 // @author       Fikri
 // @match        http://192.168.3.16/smartplus/erm_ranap*
+// @updateURL    https://raw.githubusercontent.com/almunawarfikri/smartplus-tools/main/dashboardlos.user.js
+// @downloadURL  https://raw.githubusercontent.com/almunawarfikri/smartplus-tools/main/dashboardlos.user.js
 // @grant        none
 // ==/UserScript==
 
@@ -126,17 +128,19 @@ function hitungStatistik(){
 
         /* ===== DOKTER ===== */
 
-        const dokterCell=cells.find(c=>c.innerText.includes("Sp"));
+        const dokterCell = cells.find(c => /dr\./i.test(c.innerText));
 
         if(dokterCell){
 
-            let nama=dokterCell.innerText.split("\n")[0].trim();
+    let nama = dokterCell.innerText.split("\n")[0].trim();
 
-            nama=singkatDokter(nama);
+    if(!nama.toLowerCase().includes("dr.")) return;
 
-            dokter[nama]=(dokter[nama]||0)+1;
+    nama = singkatDokter(nama);
 
-        }
+    dokter[nama] = (dokter[nama] || 0) + 1;
+
+}
 
         /* ===== LOS ===== */
 
