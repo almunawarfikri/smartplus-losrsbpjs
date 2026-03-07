@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Disable Klik Kolom Casemix
 // @namespace    http://tampermonkey.net/
-// @version      1.2
-// @description  Mencegah klik membuka detail pasien pada kolom LOS RS, LOS BPJS dan Tarif RS
+// @version      1.3
+// @description  Hanya kolom Action yang bisa diklik
 // @author       Fikri
 // @match        http://192.168.3.16/smartplus/erm_ranap*
 // @updateURL    https://raw.githubusercontent.com/almunawarfikri/smartplus-tools/main/disableclick.user.js
@@ -14,27 +14,23 @@
 
 'use strict';
 
-function getTargetIndex(){
+function getActionIndex(){
 
-    let th=document.querySelectorAll("#myTable thead th");
+    let th = document.querySelectorAll("#myTable thead th");
 
-    let index=[];
+    let actionIndex = -1;
 
     th.forEach((h,i)=>{
 
-        let text=h.innerText.trim();
+        let text = h.innerText.trim();
 
-        if(
-            text==="LOS RS" ||
-            text==="LOS BPJS" ||
-            text==="Tarif RS"
-        ){
-            index.push(i);
+        if(text === "Action"){
+            actionIndex = i;
         }
 
     });
 
-    return index;
+    return actionIndex;
 
 }
 
@@ -50,9 +46,10 @@ function blockClick(e){
 
     let index = cells.indexOf(cell);
 
-    let targetIndex = getTargetIndex();
+    let actionIndex = getActionIndex();
 
-    if(targetIndex.includes(index)){
+    // jika bukan kolom Action → blok
+    if(index !== actionIndex){
 
         e.stopImmediatePropagation();
         e.stopPropagation();
