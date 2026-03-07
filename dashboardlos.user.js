@@ -1,12 +1,10 @@
 // ==UserScript==
 // @name         Dashboard TKMKB
 // @namespace    http://tampermonkey.net/
-// @version      1.4
+// @version      1.5
 // @description  Dashboard LOS + Ruangan + Dokter
 // @author       Fikri
 // @match        http://192.168.3.16/smartplus/erm_ranap*
-// @updateURL    https://raw.githubusercontent.com/almunawarfikri/smartplus-tools/main/dashboardlos.user.js
-// @downloadURL  https://raw.githubusercontent.com/almunawarfikri/smartplus-tools/main/dashboardlos.user.js
 // @grant        none
 // ==/UserScript==
 
@@ -46,16 +44,65 @@ const style = `
 }
 
 .dokter-list{
-    margin-top:6px;
-    font-size:13px;
+    margin-top:8px;
+}
+
+.badge{
+    background:#1976d2;
+    color:white;
+    padding:2px 7px;
+    border-radius:4px;
+    margin-left:4px;
+    font-size:12px;
 }
 `;
-
-/* ================= STYLE INSERT ================= */
 
 const styleSheet = document.createElement("style");
 styleSheet.innerText = style;
 document.head.appendChild(styleSheet);
+
+
+/* ================= SINGKAT NAMA DOKTER ================= */
+
+function singkatDokter(nama){
+
+    nama = nama.replace(/\n/g," ").trim();
+
+    const map = {
+
+        "Dedy Gunadi":"dr. Dedy, Sp.A",
+        "Fandy Erlangga":"dr. Fandy, Sp.PD",
+        "Widyastuti":"dr. Widyastuti, Sp.A",
+        "Kharisma Wibawa Nurdin Putra":"dr. Kharisma, Sp.PD",
+        "Rahardi Mokhtar":"dr. Rahardi, Sp.A",
+        "Ira Melintira Trinanty":"dr. Ira, Sp.P",
+        "Kiki Maharani":"dr. Kiki, Sp.PD",
+        "Khalid Mohammad Shidiq":"dr. Khalid, Sp.PD",
+        "Miky Akbar":"dr. Miky, Sp.A",
+        "Ercila Rizky Rolliana":"dr. Ercila, Sp.N",
+        "Ira Kusumastuti":"dr. Ika, Sp.P",
+        "Akhmad Isna Nurudinulloh":"dr. Isna, Sp.JP",
+        "Muhammad Hafiz Afif":"dr. Hafiz, Sp.B",
+        "Ahmad Mekkah":"dr. Mekkah, Sp.PD",
+        "Gogor Meisadona":"dr. Gogor, Sp.N",
+        "Cut Arsy Rahmi":"dr. Cut, Sp.JP",
+        "Adjie Pratignyo":"dr. Adjie, Sp.B"
+
+    };
+
+    for(let key in map){
+
+        if(nama.includes(key)){
+
+            return map[key];
+
+        }
+
+    }
+
+    return nama;
+
+}
 
 
 /* ================= HITUNG DATA ================= */
@@ -83,7 +130,9 @@ function hitungStatistik(){
 
         if(dokterCell){
 
-            let nama=dokterCell.innerText.trim().split("\n")[0];
+            let nama=dokterCell.innerText.split("\n")[0].trim();
+
+            nama=singkatDokter(nama);
 
             dokter[nama]=(dokter[nama]||0)+1;
 
@@ -95,7 +144,7 @@ function hitungStatistik(){
 
         if(!losCell) return;
 
-        const hari=parseInt(losCell.innerText.split(" ")[0]);
+        const hari=parseInt(losCell.innerText);
 
         total++;
 
@@ -107,9 +156,7 @@ function hitungStatistik(){
 
             const ruang=getRuangan(cells);
 
-            if(ruang){
-                ruang4[ruang]=(ruang4[ruang]||0)+1;
-            }
+            if(ruang) ruang4[ruang]=(ruang4[ruang]||0)+1;
 
         }
 
@@ -119,9 +166,7 @@ function hitungStatistik(){
 
             const ruang=getRuangan(cells);
 
-            if(ruang){
-                ruang5[ruang]=(ruang5[ruang]||0)+1;
-            }
+            if(ruang) ruang5[ruang]=(ruang5[ruang]||0)+1;
 
         }
 
@@ -139,8 +184,7 @@ function getRuangan(cells){
     const ruangCell=cells.find(c=>
         c.innerText.includes("RPU") ||
         c.innerText.includes("ICU") ||
-        c.innerText.includes("ISOLASI") ||
-        c.innerText.includes("HCU")
+        c.innerText.includes("ISOLASI")
     );
 
     if(!ruangCell) return null;
@@ -149,10 +193,8 @@ function getRuangan(cells){
 
     if(nama.includes("RPU-A")) return "RPU-A";
     if(nama.includes("RPU-B")) return "RPU-B";
-    if(nama.includes("RPU-C")) return "RPU-C";
     if(nama.includes("ICU")) return "ICU";
     if(nama.includes("ISOLASI")) return "ISOLASI";
-    if(nama.includes("HCU")) return "HCU";
 
     return null;
 
@@ -166,10 +208,13 @@ function formatRuang(data){
     let arr=[];
 
     Object.keys(data).forEach(r=>{
-        arr.push(`${r} : ${data[r]}`);
+
+        arr.push(`${r}:${data[r]}`);
+
     });
 
-    return `<span class="ruang-detail">(${arr.join(", ")})</span>`;
+    return arr.join(", ");
+
 }
 
 
@@ -179,7 +224,7 @@ function formatDokter(data){
 
     let arr = Object.entries(data)
         .sort((a,b)=>b[1]-a[1])
-        .map(d=>`${d[0]} (${d[1]})`);
+        .map(d=>`${d[0]} <span class="badge">${d[1]}</span>`);
 
     return arr.join(" | ");
 
@@ -223,7 +268,9 @@ function buatDashboard(){
     const table=document.querySelector("#myTable");
 
     if(table){
+
         table.parentElement.insertBefore(div,table);
+
     }
 
 }
