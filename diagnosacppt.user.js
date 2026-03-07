@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SmartPlus Diagnosa CPPT
 // @namespace    http://tampermonkey.net/
-// @version      7.0
+// @version      7.1
 // @match        http://192.168.3.16/smartplus/erm_ranap*
 // @updateURL    https://raw.githubusercontent.com/almunawarfikri/smartplus-tools/main/diagnosacppt.user.js
 // @downloadURL  https://raw.githubusercontent.com/almunawarfikri/smartplus-tools/main/diagnosacppt.user.js
