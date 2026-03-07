@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         Tarif RS
+// @name         Tarif RS SmartPlus (Instant Cache)
 // @namespace    http://tampermonkey.net/
-// @version      17.0
-// @description  Tarif RS dengan cache lokal (lebih cepat)
+// @version      19.0
+// @description  Tarif RS langsung muncul dari cache lalu update background
 // @match        http://192.168.3.16/smartplus/erm_ranap*
 // @updateURL    https://raw.githubusercontent.com/almunawarfikri/smartplus-tools/main/tarifrs-epuding.user.js
 // @downloadURL  https://raw.githubusercontent.com/almunawarfikri/smartplus-tools/main/tarifrs-epuding.user.js
@@ -17,18 +17,14 @@
 
 /* ================= CACHE ================= */
 
-const CACHE_KEY = "smartplus_tarif_cache";
+const CACHE_KEY = "smartplus_tarif_cache_v2";
 
 function loadCache(){
 
     try{
-
         return JSON.parse(localStorage.getItem(CACHE_KEY)) || {};
-
     }catch{
-
         return {};
-
     }
 
 }
@@ -125,53 +121,86 @@ function setup(){
 }
 
 
-/* ================= PROCESS ROW ================= */
+/* ================= TAMPILKAN CACHE ================= */
+
+function tampilkanCache(){
+
+    let rows=[...document.querySelectorAll("#myTable tbody tr")];
+
+    rows.forEach(row=>{
+
+        let td=document.createElement("td");
+
+        td.className="tarif-cell";
+
+        row.querySelector("td:last-child").before(td);
+
+        let link=row.querySelector("td:last-child a");
+
+        if(!link){
+
+            td.innerText="-";
+
+            return;
+
+        }
+
+        let id=idReg(link.href);
+
+        if(!id){
+
+            td.innerText="-";
+
+            return;
+
+        }
+
+        if(cache[id]){
+
+            td.innerText = rupiah(cache[id]);
+
+        }else{
+
+            td.innerText = "...";
+
+        }
+
+    });
+
+}
+
+
+/* ================= UPDATE BACKGROUND ================= */
+
+async function updateTarif(){
+
+    let rows=[...document.querySelectorAll("#myTable tbody tr")];
+
+    let batch=5;
+
+    for(let i=0;i<rows.length;i+=batch){
+
+        let slice=rows.slice(i,i+batch);
+
+        await Promise.all(slice.map(processRow));
+
+    }
+
+}
+
 
 async function processRow(row){
 
-    if(row.querySelector(".tarif-cell")) return;
-
-    let td=document.createElement("td");
-
-    td.className="tarif-cell";
-
-    row.querySelector("td:last-child").before(td);
+    let td=row.querySelector(".tarif-cell");
 
     let link=row.querySelector("td:last-child a");
 
-    if(!link){
-
-        td.innerText="-";
-
-        return;
-
-    }
+    if(!link) return;
 
     let id=idReg(link.href);
 
-    if(!id){
+    if(!id) return;
 
-        td.innerText="-";
-
-        return;
-
-    }
-
-
-    /* tampilkan cache dulu */
-
-    if(cache[id]){
-
-        td.innerText = rupiah(cache[id]);
-
-    }else{
-
-        td.innerText = "...";
-
-    }
-
-
-    /* fetch update */
 
     try{
 
@@ -190,8 +219,6 @@ async function processRow(row){
         if(!tarif) return;
 
 
-        /* jika tarif berubah */
-
         if(cache[id] !== tarif){
 
             cache[id] = tarif;
@@ -207,35 +234,18 @@ async function processRow(row){
 }
 
 
-/* ================= RUN ================= */
-
-async function run(){
-
-    let rows=[...document.querySelectorAll("#myTable tbody tr")];
-
-    let batch=5;
-
-    for(let i=0;i<rows.length;i+=batch){
-
-        let slice=rows.slice(i,i+batch);
-
-        await Promise.all(slice.map(processRow));
-
-    }
-
-}
-
-
 /* ================= INIT ================= */
 
 function init(){
 
     setup();
 
-    run();
+    tampilkanCache();   // langsung tampil
+
+    updateTarif();      // update background
 
 }
 
-setTimeout(init,1500);
+setTimeout(init,1200);
 
 })();
