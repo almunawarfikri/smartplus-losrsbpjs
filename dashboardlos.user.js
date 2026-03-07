@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Dashboard TKMKB
 // @namespace    http://tampermonkey.net/
-// @version      1.6
+// @version      1.6.1
 // @description  Dashboard LOS + Ruangan + Dokter
 // @author       Fikri
 // @match        http://192.168.3.16/smartplus/erm_ranap*
