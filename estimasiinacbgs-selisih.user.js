@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SmartPlus Estimasi INA-CBG + Selisih
 // @namespace    http://tampermonkey.net/
-// @version      1.5
+// @version      1.2
 // @match        http://192.168.3.16/smartplus/erm_ranap*
 // @updateURL    https://raw.githubusercontent.com/almunawarfikri/smartplus-tools/main/estimasiinacbgs-selisih.user.js
 // @downloadURL  https://raw.githubusercontent.com/almunawarfikri/smartplus-tools/main/estimasiinacbgs-selisih.user.js
@@ -66,7 +66,7 @@ const inacbgTarif = [
 
 { keywords: ["lbp"], tarif: 3000100 },
 { keywords: ["morbili", "Measles"], tarif: 1959100 },
-{ keywords: ["appendicitis acute", "App", "App Akut], tarif: 3668500 },
+{ keywords: ["appendicitis acute", "App", "App Akut"], tarif: 3668500 },
 { keywords: ["ht"], tarif: 2119000 },             
 { keywords: ["dvt"], tarif: 4668700 }
 
