@@ -137,6 +137,11 @@ async function processRow(row){
 
         let tarif=ambilTarif(html);
 
+        // tambahkan 5 % dari tarif yang didapat
+        if(tarif !== null){
+            tarif = Math.round(tarif * 1.05);   // atau: tarif += tarif * 0.05;
+        }
+
         td.innerText=rupiah(tarif);
 
     }catch{
