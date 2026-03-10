@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Dashboard TKMKB
 // @namespace    http://tampermonkey.net/
-// @version      2.6
+// @version      2.6.1
 // @description  Dashboard LOS RS + ALOS RS + BOR + LOS Tinggi + Dokter + Export CSV
 // @author       Fikri
 // @match        http://192.168.3.16/smartplus/erm_ranap*
