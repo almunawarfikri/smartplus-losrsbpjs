@@ -434,7 +434,7 @@ Total Pasien : ${d.total} ||
 
 <b>Bed Occupancy Ratio (BOR) :</b> ${bor.text}
 <span class="bor-highlight">(${bor.percent}%)</span> ||
-<b>ALOS :</b> ${d.alos}
+<b>Running ALOS (Harian):</b> ${d.alos}
 
 </div>
 
