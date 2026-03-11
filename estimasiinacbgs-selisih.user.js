@@ -18,7 +18,7 @@ const inacbgTarif = [
     { keywords: ["tb dih"], tarif: 3419900 },
     { keywords: ["bekas tb"], tarif: 4226800 },
     { keywords: ["bp level 2","bronchopneumonia level 2"], tarif: 4696200 },
-    { keywords: ["bp","bronchopneumonia","broncho","pneumonia"], tarif: 2915200 },
+    { keywords: ["bp","bronchopneumonia","broncho","pneumonia"], tarif: 2000700 },
     { keywords: ["bronchitis akut","acute bronchitis"], tarif: 2915200 },
     { keywords: ["asma level 2", "ppok level 2"], tarif: 3093400 },
     { keywords: ["asma", "ppok"], tarif: 2249100 },
