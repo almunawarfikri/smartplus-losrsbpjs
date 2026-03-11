@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Dashboard TKMKB
 // @namespace    http://tampermonkey.net/
-// @version      2.6.1
+// @version      2.6.2
 // @description  Dashboard LOS RS + ALOS RS + BOR + LOS Tinggi + Dokter + Export CSV
 // @author       Fikri
 // @match        http://192.168.3.16/smartplus/erm_ranap*
@@ -155,6 +155,7 @@ const nama=ruangCell.innerText.toUpperCase();
 
 if(nama.includes("RPU-A")) return "RPU-A";
 if(nama.includes("RPU-B")) return "RPU-B";
+if(nama.includes("RPU-C")) return "RPU-C";
 if(nama.includes("ICU")) return "ICU";
 if(nama.includes("HCU")) return "HCU";
 if(nama.includes("PICU")) return "PICU";
