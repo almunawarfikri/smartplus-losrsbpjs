@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Dashboard TKMKB
 // @namespace    http://tampermonkey.net/
-// @version      2.6.2
+// @version      2.6.4
 // @description  Dashboard LOS RS + ALOS RS + BOR + LOS Tinggi + Dokter + Export CSV
 // @author       Fikri
 // @match        http://192.168.3.16/smartplus/erm_ranap*
@@ -30,86 +30,192 @@ setTimeout(hideSidebar,1000);
 /* ================= STYLE ================= */
 
 const style = `
-#dashboardPasien{
-background:#fff;
-border:1px solid #ccc;
-padding:12px;
-margin-bottom:10px;
-font-family:sans-serif;
-font-size:14px;
-border-radius:6px;
-line-height:1.6;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+#dashboardPasien {
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    padding: 12px;
+    margin-bottom: 12px;
+    font-family: 'Inter', -apple-system, blinkmacsystemfont, "Segoe UI", roboto, sans-serif;
+    font-size: 13px;
+    border-radius: 12px;
+    line-height: 1.4;
+    box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.05);
+    color: #1e293b;
 }
 
-.dot{
-height:12px;
-width:12px;
-border-radius:50%;
-display:inline-block;
-margin-right:4px;
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 10px;
+    margin-bottom: 12px;
 }
 
-.hijau{background:#4caf50;}
-.orange{background:#ff9800;}
-.merah{background:#d50000;}
-
-.badge{
-background:#1976d2;
-color:white;
-padding:2px 7px;
-border-radius:4px;
-margin-left:4px;
-font-size:12px;
+.stat-card {
+    background: #f8fafc;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #f1f5f9;
 }
 
-.bor-highlight{
-background:#1976d2;
-color:white;
-padding:2px 6px;
-border-radius:4px;
-font-weight:bold;
+.stat-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #64748b;
+    margin-bottom: 4px;
+    display: block;
 }
 
-.btn-export{
-background:#217346;
-color:white;
-border:none;
-padding:5px 10px;
-border-radius:4px;
-font-size:12px;
-cursor:pointer;
-margin-left:10px;
+.stat-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f172a;
 }
 
-.los-box{
-margin-top:10px;
-background:#fff8e1;
-border-left:4px solid #ff9800;
-padding:8px 10px;
-border-radius:4px;
+.indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
 }
 
-.los-header{
-font-weight:bold;
-cursor:pointer;
-margin-bottom:6px;
+.indicator.hijau { background: #dcfce7; color: #166534; }
+.indicator.orange { background: #fef3c7; color: #92400e; }
+.indicator.merah { background: #fee2e2; color: #991b1b; }
+
+.dot {
+    height: 6px;
+    width: 6px;
+    border-radius: 50%;
 }
 
-.los-header::after{content:" ▶";font-size:12px;}
-.los-header.open::after{content:" ▼";}
+.hijau .dot { background: #22c55e; }
+.orange .dot { background: #f59e0b; }
+.merah .dot { background: #ef4444; }
 
-.los-item{
-padding:6px 0;
-border-bottom:1px dashed #ccc;
+.badge-dokter {
+    display: inline-flex;
+    align-items: center;
+    background: #f8fafc;
+    padding: 2px 8px;
+    border-radius: 6px;
+    margin: 1px;
+    font-size: 11px;
+    color: #475569;
+    border: 1px solid #f1f5f9;
 }
 
-.los-diagnosa{
-font-size:12px;
-color:#555;
-margin-top:2px;
+.badge-dokter .count {
+    background: #6366f1;
+    color: white;
+    padding: 0px 5px;
+    border-radius: 4px;
+    margin-left: 6px;
+    font-size: 9px;
+    font-weight: 800;
 }
 
-.hidden{display:none;}
+.bor-pill {
+    background: #6366f1;
+    color: white;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-weight: 800;
+    font-size: 11px;
+}
+
+.btn-export {
+    background: #10b981;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    float: right;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.btn-export:hover {
+    background: #059669;
+}
+
+.los-box {
+    margin-top: 12px;
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    padding: 0;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.los-header {
+    font-weight: 700;
+    cursor: pointer;
+    padding: 10px 12px;
+    font-size: 13px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.los-header::after {
+    content: "↓";
+    font-size: 14px;
+}
+
+.los-content {
+    max-height: 0;
+    overflow: hidden;
+}
+
+.los-content.open {
+    max-height: 1000px;
+    padding: 4px 12px;
+}
+
+.los-item {
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(0,0,0,0.03);
+}
+
+.los-info {
+    font-weight: 600;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    font-size: 12px;
+}
+
+.los-diagnosa {
+    font-size: 11px;
+    color: #6b7280;
+    margin-top: 4px;
+}
+
+.section-title {
+    font-size: 11px;
+    font-weight: 800;
+    color: #94a3b8;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    display: block;
+}
+
+.hidden { display: none; }
 `;
 
 document.head.appendChild(Object.assign(document.createElement("style"),{innerHTML:style}));
@@ -140,6 +246,8 @@ return h + (j/24);
 
 function getRuangan(cells){
 
+if(cells[2]) return cells[2].innerText.trim();
+
 const ruangCell=cells.find(c=>
 c.innerText.includes("RPU") ||
 c.innerText.includes("ICU") ||
@@ -151,18 +259,7 @@ c.innerText.includes("ISOLASI")
 
 if(!ruangCell) return "";
 
-const nama=ruangCell.innerText.toUpperCase();
-
-if(nama.includes("RPU-A")) return "RPU-A";
-if(nama.includes("RPU-B")) return "RPU-B";
-if(nama.includes("RPU-C")) return "RPU-C";
-if(nama.includes("ICU")) return "ICU";
-if(nama.includes("HCU")) return "HCU";
-if(nama.includes("PICU")) return "PICU";
-if(nama.includes("KORIDOR")) return "KORIDOR";
-if(nama.includes("ISOLASI")) return "ISOLASI";
-
-return "";
+return ruangCell.innerText.toUpperCase().trim();
 }
 
 /* ================= DOKTER ================= */
@@ -203,9 +300,9 @@ function formatDokter(data){
 
 let arr=Object.entries(data)
 .sort((a,b)=>b[1]-a[1])
-.map(d=>`${d[0]} <span class="badge">${d[1]}</span>`);
+.map(d=>`<div class="badge-dokter"><span>${d[0]}</span><span class="count">${d[1]}</span></div>`);
 
-return arr.join(" | ");
+return arr.join("");
 }
 
 /* ================= PASIEN LOS TINGGI ================= */
@@ -248,12 +345,12 @@ dokterCell.innerText.split("\n")[0].trim()
 if(hari>=5){
 
 list.push({
+rm:namaCell?namaCell.innerText.split("\n").pop().trim():"",
 nama:namaCell.innerText.split("\n")[0].trim(),
 dokter,
 losText,
 hari,
 ruang,
-tarif:tarifCell?tarifCell.innerText.trim():"",
 diagnosa:diagnosaCell?diagnosaCell.innerText.replace(/\n/g," ").trim():""
 });
 
@@ -399,90 +496,115 @@ function buatDashboard(){
 
 if(document.getElementById("dashboardPasien"))return;
 
-const div=document.createElement("div");
+const d = hitungStatistik();
+const losTinggi = pasienLOSTinggi();
+const bor = bedOccupancy();
 
-div.id="dashboardPasien";
+const div = document.createElement("div");
+div.id = "dashboardPasien";
 
-const d=hitungStatistik();
-const losTinggi=pasienLOSTinggi();
-const bor=bedOccupancy();
+let textRuang4 = d.los4 > 0 ? `<small>${Object.entries(d.ruang4).map(x => x.join(":")).join(", ")}</small>` : "";
+let textRuang5 = d.los5 > 0 ? `<small>${Object.entries(d.ruang5).map(x => x.join(":")).join(", ")}</small>` : "";
 
-let textRuang4=d.los4>0?`(${Object.entries(d.ruang4).map(x=>x.join(":")).join(", ")})`:"";
-let textRuang5=d.los5>0?`(${Object.entries(d.ruang5).map(x=>x.join(":")).join(", ")})`:"";
+div.innerHTML = `
+    <div style="margin-bottom: 12px; display: flow-root; line-height: 1;">
+        <span style="font-size: 15px; font-weight: 800; color: #0f172a;">DASHBOARD TKMKB</span>
+        <button class="btn-export" id="exportCSV">
+            <span>⬇</span> Export
+        </button>
+    </div>
 
-div.innerHTML=`
+    <div class="dashboard-grid">
+        <div class="stat-card">
+            <span class="stat-label">Ringkasan</span>
+            <div class="stat-value">${d.total} <small style="font-weight: 500; color: #64748b;">Pasien</small></div>
+            <div style="display: flex; gap: 4px; margin-top: 8px; flex-wrap: wrap;">
+                <div class="indicator hijau">≤3: ${d.hijau}</div>
+                <div class="indicator orange">4: ${d.los4}</div>
+                <div class="indicator merah">≥5: ${d.los5}</div>
+            </div>
+        </div>
 
-<div>
+        <div class="stat-card">
+            <span class="stat-label">BOR & ALOS</span>
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+                <div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 3px;">
+                        <span style="font-size: 10px; font-weight: 700;">BOR</span>
+                        <span class="bor-pill">${bor.percent}%</span>
+                    </div>
+                    <div style="height: 4px; background: #e2e8f0; border-radius: 2px; overflow: hidden;">
+                        <div style="width: ${bor.percent}%; height: 100%; background: #6366f1; border-radius: 2px;"></div>
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 10px; font-weight: 700; color: #64748b;">ALOS</span>
+                    <span class="stat-value" style="font-size: 14px;">${d.alos}</span>
+                </div>
+            </div>
+        </div>
 
-<b>Dashboard KMKB :</b>
-Total Pasien : ${d.total} ||
+        <div class="stat-card">
+            <span class="stat-label">Distribusi LOS > 3</span>
+            <div style="display: flex; flex-direction: column; gap: 4px; font-size: 11px;">
+                <div style="display: flex; gap: 4px; align-items: center;">
+                    <span class="indicator orange" style="padding: 1px 4px; font-size: 9px;">LOS 4</span>
+                    <span style="color: #64748b; font-size: 10px;">${textRuang4 || '-'}</span>
+                </div>
+                <div style="display: flex; gap: 4px; align-items: center;">
+                    <span class="indicator merah" style="padding: 1px 4px; font-size: 9px;">LOS ≥5</span>
+                    <span style="color: #64748b; font-size: 10px;">${textRuang5 || '-'}</span>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<span class="dot hijau"></span> LOS ≤3 : ${d.hijau} |
-<span class="dot orange"></span> LOS 4 : ${d.los4} ${textRuang4} |
-<span class="dot merah"></span> LOS ≥5 : ${d.los5} ${textRuang5}
+    <div>
+        <span class="section-title">Dokter</span>
+        <div style="display: flex; flex-wrap: wrap;">
+            ${formatDokter(d.dokter)}
+        </div>
+    </div>
 
-<button class="btn-export" id="exportCSV">Export CSV</button>
-
-</div>
-
-<div style="margin-top:6px">
-
-<b>Dokter :</b> ${formatDokter(d.dokter)}
-
-</div>
-
-<div style="margin-top:6px">
-
-<b>Bed Occupancy Ratio (BOR) :</b> ${bor.text}
-<span class="bor-highlight">(${bor.percent}%)</span> ||
-<b>Running ALOS (Harian):</b> ${d.alos}
-
-</div>
-
-<div class="los-box">
-
-<div class="los-header" id="toggleLOS">
-⚠ Pasien LOS Tinggi (${losTinggi.length})
-</div>
-
-<div id="losContent" class="hidden">
-
-${losTinggi.map((p,i)=>`
-
-<div class="los-item">
-
-<b>${i+1}. ${p.nama} — ${p.dokter} — ${p.losText} — ${p.ruang} — ${p.tarif}</b>
-
-<div class="los-diagnosa">${p.diagnosa}</div>
-
-</div>
-
-`).join("")}
-
-</div>
-
-</div>
-
+    <div class="los-box">
+        <div class="los-header" id="toggleLOS" style="padding: 8px 12px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span>⚠ Pasien LOS Tinggi</span>
+                <span class="indicator merah" style="background: #ef4444; color: white; padding: 1px 6px;">${losTinggi.length}</span>
+            </div>
+        </div>
+        <div id="losContent" class="los-content">
+            ${losTinggi.map((p, i) => `
+                <div class="los-item">
+                    <div class="los-info" style="font-size: 11px;">
+                        <span style="color: #1e293b; font-weight: 700;">${i + 1}. ${p.nama} (${p.rm})</span>
+                        <span class="badge-dokter" style="margin: 0; padding: 1px 6px; font-size: 10px;">${p.dokter}</span>
+                        <span class="indicator orange" style="font-size: 10px; padding: 1px 5px;">⏱ ${p.losText}</span>
+                        <span class="indicator" style="background: #f1f5f9; color: #475569; font-size: 10px; padding: 1px 5px;">📍 ${p.ruang}</span>
+                        <span style="color: #4f46e5; font-weight: 500; font-size: 11px; margin-left: auto; text-align: right; flex-grow: 1;">${p.diagnosa}</span>
+                    </div>
+                </div>
+            `).join("")}
+        </div>
+    </div>
 `;
 
-const table=document.querySelector("#myTable");
-
+const table = document.querySelector("#myTable");
 if(table){
-table.parentElement.insertBefore(div,table);
+    table.parentElement.insertBefore(div, table);
 }
 
-setTimeout(()=>{
+setTimeout(() => {
+    const toggle = document.getElementById("toggleLOS");
+    const content = document.getElementById("losContent");
 
-document.getElementById("toggleLOS").onclick=function(){
+    toggle.onclick = function() {
+        this.classList.toggle("open");
+        content.classList.toggle("open");
+    };
 
-document.getElementById("losContent").classList.toggle("hidden");
-this.classList.toggle("open");
-
-};
-
-document.getElementById("exportCSV").onclick=exportCSV;
-
-},100);
+    document.getElementById("exportCSV").onclick = exportCSV;
+}, 100);
 
 }
 
