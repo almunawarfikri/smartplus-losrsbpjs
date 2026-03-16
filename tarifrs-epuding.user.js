@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Tarif RS SmartPlus (Ultra Fast Parallel)
 // @namespace    http://tampermonkey.net/
-// @version      23.0
+// @version      24.0
 // @description  Ambil Tarif RS SMARTHIS super cepat (5 paralel + cache)
 // @match        http://192.168.3.16/smartplus/erm_ranap*
 // @updateURL    https://raw.githubusercontent.com/almunawarfikri/smartplus-tools/main/tarifrs-epuding.user.js
