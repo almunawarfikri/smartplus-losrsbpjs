@@ -1,9 +1,10 @@
 // ==UserScript==
 // @name         SmartPlus LOS RS & BPJS
 // @namespace    http://tampermonkey.net/
-// @version      15.5
+// @version      15.6
 // @description  LOS RS + LOS BPJS dari E-PUDING + cache + fast + sort
 // @match        http://192.168.3.16/smartplus/erm_ranap*
+// @match        http://192.168.3.16/smartplus/nurse_station/eranap*
 // @updateURL    https://raw.githubusercontent.com/almunawarfikri/smartplus-tools/main/los-smartplus.user.js
 // @downloadURL  https://raw.githubusercontent.com/almunawarfikri/smartplus-tools/main/los-smartplus.user.js
 // @grant        none
