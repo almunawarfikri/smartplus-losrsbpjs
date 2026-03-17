@@ -1,35 +1,36 @@
 // ==UserScript==
 // @name         Dashboard TKMKB
 // @namespace    http://tampermonkey.net/
-// @version      2.6.6
+// @version      2.6.7
 // @description  Dashboard LOS RS + ALOS RS + BOR + LOS Tinggi + Dokter + Export CSV
 // @author       Fikri
 // @match        http://192.168.3.16/smartplus/erm_ranap*
+// @match        http://192.168.3.16/smartplus/nurse_station/eranap*
 // @updateURL    https://raw.githubusercontent.com/almunawarfikri/smartplus-tools/main/dashboardlos.user.js
 // @downloadURL  https://raw.githubusercontent.com/almunawarfikri/smartplus-tools/main/dashboardlos.user.js
 // @grant        none
 // ==/UserScript==
 
-(function() {
-'use strict';
+(function () {
+    'use strict';
 
     /* ================= AUTO HIDE SIDEBAR ================= */
 
-function hideSidebar(){
+    function hideSidebar() {
 
-const toggle=document.querySelector(".sidebartoggler");
+        const toggle = document.querySelector(".sidebartoggler");
 
-if(toggle){
-toggle.click();
-}
+        if (toggle) {
+            toggle.click();
+        }
 
-}
+    }
 
-setTimeout(hideSidebar,1000);
+    setTimeout(hideSidebar, 1000);
 
-/* ================= STYLE ================= */
+    /* ================= STYLE ================= */
 
-const style = `
+    const style = `
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 #dashboardPasien {
@@ -218,299 +219,299 @@ const style = `
 .hidden { display: none; }
 `;
 
-document.head.appendChild(Object.assign(document.createElement("style"),{innerHTML:style}));
+    document.head.appendChild(Object.assign(document.createElement("style"), { innerHTML: style }));
 
-/* ================= FORMAT ================= */
+    /* ================= FORMAT ================= */
 
-function formatRupiah(n){
-let sign=n<0?"-":"";
-let formatted=Math.abs(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,".");
-return "Rp "+sign+formatted;
-}
-
-/* ================= AMBIL LOS ================= */
-
-function ambilLOS(text){
-
-const hari=text.match(/(\d+)\s*Hari/i);
-const jam=text.match(/(\d+)\s*Jam/i);
-
-let h=hari?parseInt(hari[1]):0;
-let j=jam?parseInt(jam[1]):0;
-
-return h + (j/24);
-
-}
-
-/* ================= RUANGAN ================= */
-
-function getRuangan(cells){
-    let raw = "";
-    if(cells[2]) {
-        raw = cells[2].innerText.trim();
-    } else {
-        const ruangCell = cells.find(c =>
-            c.innerText.includes("RPU") ||
-            c.innerText.includes("ICU") ||
-            c.innerText.includes("HCU") ||
-            c.innerText.includes("PICU") ||
-            c.innerText.includes("KORIDOR") ||
-            c.innerText.includes("ISOLASI")
-        );
-        if(!ruangCell) return "";
-        raw = ruangCell.innerText.trim();
+    function formatRupiah(n) {
+        let sign = n < 0 ? "-" : "";
+        let formatted = Math.abs(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        return "Rp " + sign + formatted;
     }
 
-    // OVOID ROOM NUMBERS: Strip digits and anything after a space or colon if it looks like a room
-    // example: "RPU-A 207" -> "RPU-A"
-    return raw.split(/\s+/)[0].toUpperCase().trim();
-}
+    /* ================= AMBIL LOS ================= */
 
-/* ================= DOKTER ================= */
+    function ambilLOS(text) {
 
-function singkatDokter(nama){
+        const hari = text.match(/(\d+)\s*Hari/i);
+        const jam = text.match(/(\d+)\s*Jam/i);
 
-nama=nama.replace(/\n/g," ").trim();
+        let h = hari ? parseInt(hari[1]) : 0;
+        let j = jam ? parseInt(jam[1]) : 0;
 
-const map={
-"Dedy Gunadi":"dr. Dedy, Sp.A",
-"Fandy Erlangga":"dr. Fandy, Sp.PD",
-"Widyastuti":"dr. Widyastuti, Sp.A",
-"Kharisma Wibawa Nurdin Putra":"dr. Kharisma, Sp.PD",
-"Rahardi Mokhtar":"dr. Rahardi, Sp.A",
-"Ira Melintira Trinanty":"dr. Ira, Sp.P",
-"Kiki Maharani":"dr. Kiki, Sp.PD",
-"Khalid Mohammad Shidiq":"dr. Khalid, Sp.PD",
-"Miky Akbar":"dr. Miky, Sp.A",
-"Ercila Rizky Rolliana":"dr. Ercila, Sp.N",
-"Ira Kusumastuti":"dr. Ika, Sp.P",
-"Akhmad Isna Nurudinulloh":"dr. Isna, Sp.JP",
-"Muhammad Hafiz Afif":"dr. Hafiz, Sp.B",
-"Ahmad Mekkah":"dr. Mekkah, Sp.PD",
-"Gogor Meisadona":"dr. Gogor, Sp.N",
-"Cut Arsy Rahmi":"dr. Cut, Sp.JP",
-"Adjie Pratignyo":"dr. Adjie, Sp.B",
-"Widiawati Kurnia":"dr. WidKur, Sp.OG"
-};
+        return h + (j / 24);
 
-for(let key in map){
-if(nama.includes(key)) return map[key];
-}
+    }
 
-return nama;
-}
+    /* ================= RUANGAN ================= */
 
-function formatDokter(data){
+    function getRuangan(cells) {
+        let raw = "";
+        if (cells[2]) {
+            raw = cells[2].innerText.trim();
+        } else {
+            const ruangCell = cells.find(c =>
+                c.innerText.includes("RPU") ||
+                c.innerText.includes("ICU") ||
+                c.innerText.includes("HCU") ||
+                c.innerText.includes("PICU") ||
+                c.innerText.includes("KORIDOR") ||
+                c.innerText.includes("ISOLASI")
+            );
+            if (!ruangCell) return "";
+            raw = ruangCell.innerText.trim();
+        }
 
-let arr=Object.entries(data)
-.sort((a,b)=>b[1]-a[1])
-.map(d=>`<div class="badge-dokter"><span>${d[0]}</span><span class="count">${d[1]}</span></div>`);
+        // OVOID ROOM NUMBERS: Strip digits and anything after a space or colon if it looks like a room
+        // example: "RPU-A 207" -> "RPU-A"
+        return raw.split(/\s+/)[0].toUpperCase().trim();
+    }
 
-return arr.join("");
-}
+    /* ================= DOKTER ================= */
 
-/* ================= PASIEN LOS TINGGI ================= */
+    function singkatDokter(nama) {
 
-function pasienLOSTinggi(){
+        nama = nama.replace(/\n/g, " ").trim();
 
-const rows=document.querySelectorAll("#myTable tbody tr");
+        const map = {
+            "Dedy Gunadi": "dr. Dedy, Sp.A",
+            "Fandy Erlangga": "dr. Fandy, Sp.PD",
+            "Widyastuti": "dr. Widyastuti, Sp.A",
+            "Kharisma Wibawa Nurdin Putra": "dr. Kharisma, Sp.PD",
+            "Rahardi Mokhtar": "dr. Rahardi, Sp.A",
+            "Ira Melintira Trinanty": "dr. Ira, Sp.P",
+            "Kiki Maharani": "dr. Kiki, Sp.PD",
+            "Khalid Mohammad Shidiq": "dr. Khalid, Sp.PD",
+            "Miky Akbar": "dr. Miky, Sp.A",
+            "Ercila Rizky Rolliana": "dr. Ercila, Sp.N",
+            "Ira Kusumastuti": "dr. Ika, Sp.P",
+            "Akhmad Isna Nurudinulloh": "dr. Isna, Sp.JP",
+            "Muhammad Hafiz Afif": "dr. Hafiz, Sp.B",
+            "Ahmad Mekkah": "dr. Mekkah, Sp.PD",
+            "Gogor Meisadona": "dr. Gogor, Sp.N",
+            "Cut Arsy Rahmi": "dr. Cut, Sp.JP",
+            "Adjie Pratignyo": "dr. Adjie, Sp.B",
+            "Widiawati Kurnia": "dr. WidKur, Sp.OG"
+        };
 
-let list=[];
+        for (let key in map) {
+            if (nama.includes(key)) return map[key];
+        }
 
-rows.forEach(row=>{
+        return nama;
+    }
 
-const cells=[...row.cells];
+    function formatDokter(data) {
 
-const namaCell=cells[5];
-const diagnosaCell=cells[6];
-const dokterCell=cells[7];
-const losCell=cells.find(c=>c.innerText.match(/\d+\s*Hari/i));
-const tarifCell=row.querySelector(".tarif-cell");
+        let arr = Object.entries(data)
+            .sort((a, b) => b[1] - a[1])
+            .map(d => `<div class="badge-dokter"><span>${d[0]}</span><span class="count">${d[1]}</span></div>`);
 
-const ruang=getRuangan(cells);
+        return arr.join("");
+    }
 
-if(!losCell||!namaCell)return;
+    /* ================= PASIEN LOS TINGGI ================= */
 
-const losNumeric=ambilLOS(losCell.innerText);
-const hari=Math.floor(losNumeric);
+    function pasienLOSTinggi() {
 
-const losText=losCell.innerText.trim();
+        const rows = document.querySelectorAll("#myTable tbody tr");
 
-let dokter="";
+        let list = [];
 
-if(dokterCell){
+        rows.forEach(row => {
 
-dokter=singkatDokter(
-dokterCell.innerText.split("\n")[0].trim()
-);
+            const cells = [...row.cells];
 
-}
+            const namaCell = cells[5];
+            const diagnosaCell = cells[6];
+            const dokterCell = cells[7];
+            const losCell = cells.find(c => c.innerText.match(/\d+\s*Hari/i));
+            const tarifCell = row.querySelector(".tarif-cell");
 
-if(hari>=5){
+            const ruang = getRuangan(cells);
 
-list.push({
-rm:namaCell?namaCell.innerText.split("\n").pop().trim():"",
-nama:namaCell.innerText.split("\n")[0].trim(),
-dokter,
-losText,
-hari,
-ruang,
-diagnosa:diagnosaCell?diagnosaCell.innerText.replace(/\n/g," ").trim():""
-});
+            if (!losCell || !namaCell) return;
 
-}
+            const losNumeric = ambilLOS(losCell.innerText);
+            const hari = Math.floor(losNumeric);
 
-});
+            const losText = losCell.innerText.trim();
 
-list.sort((a,b)=> b.hari - a.hari);
+            let dokter = "";
 
-return list;
+            if (dokterCell) {
 
-}
+                dokter = singkatDokter(
+                    dokterCell.innerText.split("\n")[0].trim()
+                );
 
-/* ================= BOR ================= */
+            }
 
-function bedOccupancy(){
+            if (hari >= 5) {
 
-const rows=document.querySelectorAll("#myTable tbody tr");
+                list.push({
+                    rm: namaCell ? namaCell.innerText.split("\n").pop().trim() : "",
+                    nama: namaCell.innerText.split("\n")[0].trim(),
+                    dokter,
+                    losText,
+                    hari,
+                    ruang,
+                    diagnosa: diagnosaCell ? diagnosaCell.innerText.replace(/\n/g, " ").trim() : ""
+                });
 
-let totalBed=101;
-let terisi=rows.length;
+            }
 
-let bor=((terisi/totalBed)*100).toFixed(1);
+        });
 
-return {
-text:`${terisi}/${totalBed}`,
-percent:bor
-};
+        list.sort((a, b) => b.hari - a.hari);
 
-}
+        return list;
 
-/* ================= STATISTIK ================= */
+    }
 
-function hitungStatistik(){
+    /* ================= BOR ================= */
 
-const rows=document.querySelectorAll("#myTable tbody tr");
+    function bedOccupancy() {
 
-let total = rows.length;
-let sumLOS_RS=0;
+        const rows = document.querySelectorAll("#myTable tbody tr");
 
-let hijau=0;
-let los4=0;
-let los5=0;
+        let totalBed = 101;
+        let terisi = rows.length;
 
-let ruang4={};
-let ruang5={};
-let dokter={};
+        let bor = ((terisi / totalBed) * 100).toFixed(1);
 
-rows.forEach(row=>{
+        return {
+            text: `${terisi}/${totalBed}`,
+            percent: bor
+        };
 
-const cells=[...row.cells];
+    }
 
-if(cells.length<5)return;
+    /* ================= STATISTIK ================= */
 
-/* dokter */
+    function hitungStatistik() {
 
-const dokterCell=cells.find(c=>/dr\./i.test(c.innerText));
+        const rows = document.querySelectorAll("#myTable tbody tr");
 
-if(dokterCell){
+        let total = rows.length;
+        let sumLOS_RS = 0;
 
-let nama=dokterCell.innerText.split("\n")[0].trim();
-nama=singkatDokter(nama);
+        let hijau = 0;
+        let los4 = 0;
+        let los5 = 0;
 
-dokter[nama]=(dokter[nama]||0)+1;
+        let ruang4 = {};
+        let ruang5 = {};
+        let dokter = {};
 
-}
+        rows.forEach(row => {
 
-/* LOS */
+            const cells = [...row.cells];
 
-const losCell=cells.find(c=>c.innerText.match(/\d+\s*Hari/i));
+            if (cells.length < 5) return;
 
-if(losCell){
+            /* dokter */
 
-let los=ambilLOS(losCell.innerText);
-sumLOS_RS += los;
+            const dokterCell = cells.find(c => /dr\./i.test(c.innerText));
 
-let hari=Math.floor(los);
+            if (dokterCell) {
 
-if(hari<=3)hijau++;
+                let nama = dokterCell.innerText.split("\n")[0].trim();
+                nama = singkatDokter(nama);
 
-else if(hari===4){
+                dokter[nama] = (dokter[nama] || 0) + 1;
 
-los4++;
-const ruang=getRuangan(cells);
-if(ruang)ruang4[ruang]=(ruang4[ruang]||0)+1;
+            }
 
-}
+            /* LOS */
 
-else if(hari>=5){
+            const losCell = cells.find(c => c.innerText.match(/\d+\s*Hari/i));
 
-los5++;
-const ruang=getRuangan(cells);
-if(ruang)ruang5[ruang]=(ruang5[ruang]||0)+1;
+            if (losCell) {
 
-}
+                let los = ambilLOS(losCell.innerText);
+                sumLOS_RS += los;
 
-}
+                let hari = Math.floor(los);
 
-});
+                if (hari <= 3) hijau++;
 
-let alos=total>0?(sumLOS_RS/total).toFixed(2):"0.00";
+                else if (hari === 4) {
 
-return {total,alos,hijau,los4,los5,ruang4,ruang5,dokter};
+                    los4++;
+                    const ruang = getRuangan(cells);
+                    if (ruang) ruang4[ruang] = (ruang4[ruang] || 0) + 1;
 
-}
+                }
 
-/* ================= EXPORT CSV ================= */
+                else if (hari >= 5) {
 
-function exportCSV(){
+                    los5++;
+                    const ruang = getRuangan(cells);
+                    if (ruang) ruang5[ruang] = (ruang5[ruang] || 0) + 1;
 
-const rows=document.querySelectorAll("#myTable tr");
+                }
 
-let csv=[];
+            }
 
-rows.forEach(r=>{
+        });
 
-let cols=r.querySelectorAll("td,th");
+        let alos = total > 0 ? (sumLOS_RS / total).toFixed(2) : "0.00";
 
-let row=[];
+        return { total, alos, hijau, los4, los5, ruang4, ruang5, dokter };
 
-cols.forEach(c=>{
-row.push('"'+c.innerText.replace(/\n/g," ").trim()+'"');
-});
+    }
 
-csv.push(row.join(";"));
+    /* ================= EXPORT CSV ================= */
 
-});
+    function exportCSV() {
 
-let blob=new Blob([csv.join("\n")],{type:"text/csv"});
+        const rows = document.querySelectorAll("#myTable tr");
 
-let a=document.createElement("a");
+        let csv = [];
 
-a.href=URL.createObjectURL(blob);
-a.download="data_pasien_ranap.csv";
+        rows.forEach(r => {
 
-a.click();
+            let cols = r.querySelectorAll("td,th");
 
-}
+            let row = [];
 
-/* ================= DASHBOARD ================= */
+            cols.forEach(c => {
+                row.push('"' + c.innerText.replace(/\n/g, " ").trim() + '"');
+            });
 
-function buatDashboard(){
+            csv.push(row.join(";"));
 
-if(document.getElementById("dashboardPasien"))return;
+        });
 
-const d = hitungStatistik();
-const losTinggi = pasienLOSTinggi();
-const bor = bedOccupancy();
+        let blob = new Blob([csv.join("\n")], { type: "text/csv" });
 
-const div = document.createElement("div");
-div.id = "dashboardPasien";
+        let a = document.createElement("a");
 
-let textRuang4 = d.los4 > 0 ? `<small>${Object.entries(d.ruang4).map(x => x.join(" : ")).join(", ")}</small>` : "";
-let textRuang5 = d.los5 > 0 ? `<small>${Object.entries(d.ruang5).map(x => x.join(" : ")).join(", ")}</small>` : "";
+        a.href = URL.createObjectURL(blob);
+        a.download = "data_pasien_ranap.csv";
 
-div.innerHTML = `
+        a.click();
+
+    }
+
+    /* ================= DASHBOARD ================= */
+
+    function buatDashboard() {
+
+        if (document.getElementById("dashboardPasien")) return;
+
+        const d = hitungStatistik();
+        const losTinggi = pasienLOSTinggi();
+        const bor = bedOccupancy();
+
+        const div = document.createElement("div");
+        div.id = "dashboardPasien";
+
+        let textRuang4 = d.los4 > 0 ? `<small>${Object.entries(d.ruang4).map(x => x.join(" : ")).join(", ")}</small>` : "";
+        let textRuang5 = d.los5 > 0 ? `<small>${Object.entries(d.ruang5).map(x => x.join(" : ")).join(", ")}</small>` : "";
+
+        div.innerHTML = `
     <div style="margin-bottom: 12px; display: flow-root; line-height: 1;">
         <span style="font-size: 15px; font-weight: 800; color: #0f172a;">DASHBOARD TKMKB</span>
         <button class="btn-export" id="exportCSV">
@@ -593,25 +594,25 @@ div.innerHTML = `
     </div>
 `;
 
-const table = document.querySelector("#myTable");
-if(table){
-    table.parentElement.insertBefore(div, table);
-}
+        const table = document.querySelector("#myTable");
+        if (table) {
+            table.parentElement.insertBefore(div, table);
+        }
 
-setTimeout(() => {
-    const toggle = document.getElementById("toggleLOS");
-    const content = document.getElementById("losContent");
+        setTimeout(() => {
+            const toggle = document.getElementById("toggleLOS");
+            const content = document.getElementById("losContent");
 
-    toggle.onclick = function() {
-        this.classList.toggle("open");
-        content.classList.toggle("open");
-    };
+            toggle.onclick = function () {
+                this.classList.toggle("open");
+                content.classList.toggle("open");
+            };
 
-    document.getElementById("exportCSV").onclick = exportCSV;
-}, 100);
+            document.getElementById("exportCSV").onclick = exportCSV;
+        }, 100);
 
-}
+    }
 
-setTimeout(buatDashboard,3000);
+    setTimeout(buatDashboard, 3000);
 
 })();
